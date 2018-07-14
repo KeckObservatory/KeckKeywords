@@ -4,18 +4,24 @@ try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
+import os,glob
+
+# Treat everything in scripts except README.rst as a script to be installed
+scripts = [fname for fname in glob.glob(os.path.join('scripts', '*'))
+           if os.path.basename(fname) != 'README.rst']
+
 
 config = {
     'description': 'Access to Keck Instrument Keywords',
     'author': 'Luca Rizzi',
-    'url': 'Project URL https://github.com/
-    'download_url': 'https://github.com/jrleeman/SettingUpOpenSource',
-    'author_email': 'kd5wxb@gmail.com',
+    'url': 'https://github.com/KeckObservatory/KeckKeywords',
+    'download_url': 'https://github.com/KeckObservatory/KeckKeywords.git',
+    'author_email': 'lrizzi@keck.hawaii.edu',
     'version': '0.1',
-    'install_requires': ['numpy', 'matplotlib'],
-    'packages': ['hugs'],
-    'scripts': [],
-    'name': 'hugs'
+    'install_requires': [],
+    'packages': ['keck-keywords'],
+    'scripts': scripts,
+    'name': 'keck-keywords'
 }
 
 setup(**config)

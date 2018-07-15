@@ -41,8 +41,7 @@ release = ''
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.githubpages',
-    'sphinx.ext.napoleon',
-    'numpydoc'
+    'sphinx.ext.napoleon'
 ]
 
 # Napoleon settings

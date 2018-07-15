@@ -69,4 +69,3 @@ def kshow_keywords(server):
     url = 'http://localhost:5002/showkeywords/%s' % server
     response = requests.get(url)
     return response.json()
-

@@ -1,0 +1,14 @@
+from keck_keywords.kaccess import kshow
+import argparse
+
+# Parsing arguments
+description = "Show value of a keyword"
+parser = argparse.ArgumentParser(description=description)
+parser.add_argument('server', nargs="?", default=None, help='Server')
+parser.add_argument('keyword', nargs="?", default=None, help='Keyword')
+
+if __name__ == '__main__':
+    args = parser.parse_args()
+    value = kshow(args.server, args.keyword)
+    print(value)
+    

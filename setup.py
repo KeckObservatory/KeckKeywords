@@ -18,10 +18,11 @@ config = {
     'download_url': 'https://github.com/KeckObservatory/KeckKeywords.git',
     'author_email': 'lrizzi@keck.hawaii.edu',
     'version': '0.1',
-    'install_requires': [],
-    'packages': ['keck-keywords'],
+    'install_requires': ['requests'],
+    'packages': ['keck_keywords'],
     'scripts': scripts,
-    'name': 'keck-keywords'
+    'name': 'keck_keywords'
 }
 
 setup(**config)
+

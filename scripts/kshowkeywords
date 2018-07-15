@@ -1,0 +1,15 @@
+from keck_keywords.kaccess import kshow_keywords
+import argparse
+import pprint
+
+# Parsing arguments
+description = "Show the list of a keywords for a server"
+parser = argparse.ArgumentParser(description=description)
+parser.add_argument('server', nargs="?", default=None, help='Server')
+
+if __name__ == '__main__':
+    args = parser.parse_args()
+    keywords = kshow_keywords(args.server)
+    for keyword in keywords:
+        pprint.pprint(keyword)
+    

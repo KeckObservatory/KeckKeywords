@@ -1,14 +1,31 @@
 from flask import Flask, json, render_template, Response, jsonify, request
 import subprocess
 import sys
-sys.path.append('/kroot/rel/default/lib/python')
-import ktl
-import pandas as pd
-import holoviews as hv
-from bokeh.embed import file_html
+import os
+import warnings
 from datetime import datetime
+if 'RELDIR' in os.environ:
+    sys.path.append('%s/lib/python' % os.environ('RELDIR'))
+else:
+    warnings.warn("The RELDIR variable is not defined. It might not be possible to import KTL")
+try:
+    import ktl
+except ImportError as error:
+    print("KTL cannot be imported. The keyword server cannot be started.")
+    print("Make sure RELDIR is defined or add the ktl location to your PYTHONPATH")
+    print(error)
+    sys.exit(1)
+use_graphics = True
+try:
+    import pandas as pd
+    import holoviews as hv
+    from bokeh.embed import file_html
+    from bokeh.resources import CDN
+except ImportError as error:
+    use_graphics = False
+    print("One of the graphics modules is not available. Graphics functions are disabled.")
+    print(error)
 
-hv.extension('bokeh')
 app = Flask(__name__)
 
 
@@ -53,6 +70,9 @@ def show_keywords(server):
 
 @app.route('/plot/<server>/<keyword>')
 def plot_keyword(server,keyword):
+    if use_graphics is False:
+        return json_dump("The graphics system is disabled")
+    hv.extension('bokeh')
     cmd = "gshow -s %s %s -terse -date '1 day ago'" % (server,keyword)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     (output,err) = p.communicate()

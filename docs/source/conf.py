@@ -44,7 +44,6 @@ extensions = [
     'sphinx.ext.napoleon'
 ]
 
-extensions += ['sphinxarg.ext']
 
 # Napoleon settings
 napoleon_google_docstring = True

@@ -3,17 +3,29 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Keck Instrument Keyword Access's documentation!
-==========================================================
+==============================
+Keck Instrument Keyword Access
+==============================
+
+Documentation
+=============
+
+.. toctree::
+   :maxdepth: 2
+
+   keckkeywords/installation
+   keckkeywords/basic_usage
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   keckkeywords/commands
+   keckkeywords/functions
+
 This package provide remote access to the Keck Keyword system without connecting to a specific instrument server.
 
-.. automodule:: keck_keywords.kaccess
-  :members:
+
 
 
 Indices and tables

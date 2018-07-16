@@ -108,7 +108,7 @@ def plot_keyword(server,keyword):
     # pyviz solution generating pure html
     #renderer = hv.plotting.mpl.MPL.Renderer.instance(dpi=120)
     renderer = hv.renderer('bokeh')
-    myplot = hv.Points(mydata).options(width=800, height=500,xrotation=90, size=5)
+    myplot = hv.Points(mydata, ('x', 'Time'), ('y',keyword)).options(width=800, height=500,xrotation=90, size=5)
     hvplot = renderer.get_plot(myplot).state
     html = file_html(hvplot, CDN, "Plot: %s from %s" % (keyword, server))
     return html

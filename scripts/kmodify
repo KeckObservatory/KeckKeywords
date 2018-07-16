@@ -1,17 +1,18 @@
-from keck_keywords.kaccess import kmodify
+from keck_keywords.kaccess import kmodify, get_host
 import argparse
-x
+
 # Parsing arguments
 description = "Modify value of a keyword"
 parser = argparse.ArgumentParser(description=description)
-parser.add_argument('host', nargs=1, default=None, help='Host')
-parser.add_argument('server', nargs=1, default=None, help='Server')
-parser.add_argument('keyword', nargs=1, default=None, help='Keyword')
-parser.add_argument('value', nargs=1, default=None, help='Value')
+parser.add_argument('-host',  default=None, help='Host')
+parser.add_argument('server',  default=None, help='Server')
+parser.add_argument('keyword',  default=None, help='Keyword')
+parser.add_argument('value',  default=None, help='Value')
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    ok, reason = kmodify(args.host, args.server, args.keyword, args.value)
+    host = get_host(args)
+    ok, reason = kmodify(host, args.server, args.keyword, args.value)
     if ok:
        print("Done")
     else:

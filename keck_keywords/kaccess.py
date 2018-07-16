@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 import requests
+import configparser
+import os
+import sys
 
 def kshow(host, server, keyword):
     """Show the value of a keyword
@@ -75,3 +78,38 @@ def kshow_keywords(host, server):
     url = 'http://%s:5002/showkeywords/%s' % (host, server)
     response = requests.get(url)
     return response.json()
+
+def get_host(args):
+
+    if args.host:
+        host = args.host
+    else:
+        config = parse_config()
+        host = config['keckkeywords']['host']
+    return host
+
+def parse_config():
+    config = configparser.ConfigParser()
+    user_config_dir = os.path.expanduser("~") + "/.config"
+    user_config = user_config_dir + "/keckkeywords.ini"
+
+    # Just a small function to write the file
+    def write_file():
+        config.write(open(user_config, 'w'))
+
+    if not os.path.exists(user_config):
+        print("No -host option specified and no configuration file found")
+        print("A default config file will be created in your home directory")
+        config['keckkeywords'] = {'host': 'localhost'}
+
+        write_file()
+        sys.exit(1)
+    else:
+        # Read File
+        config.read(user_config)
+
+        try:
+            config.get('keckkeywords', 'host')
+            return config
+        except configparser.NoOptionError:
+            print("No option called 'host' in your configuration file")

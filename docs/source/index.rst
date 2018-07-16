@@ -15,6 +15,8 @@ Documentation
 
    keckkeywords/installation
    keckkeywords/basic_usage
+   keckkeywords/keyword_server
+   keckkeywords/api_plot
 
 .. toctree::
    :maxdepth: 2

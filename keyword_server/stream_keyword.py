@@ -13,10 +13,10 @@ from tornado import gen
 from threading import Thread
 from functools import partial
 
-pressure = ktl.cache('kt1s','tmp1')
+pressure = ktl.cache('kbvs','pressure')
 exptime = ktl.cache('kbds','elaptime')
 ttime = ktl.cache('kbds','ttime')
-mykeyword = exptime
+mykeyword = pressure
 def convert_time(timestamp):
     return datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
@@ -32,10 +32,7 @@ curve_dmap = hv.DynamicMap(hv.Points, streams=[dfstream]).options(color='red',li
 @gen.coroutine
 def update(x,y):
     global example
-    if y<0.1:
-        example = pd.DataFrame({'x':x, 'y':0}, columns=['x','y'])
-    else:
-        example = example.append({'x':x, 'y':y}, ignore_index=True)
+    example = example.append({'x':x, 'y':y}, ignore_index=True)
     dfstream.send(example)
     print(example.head())    
 

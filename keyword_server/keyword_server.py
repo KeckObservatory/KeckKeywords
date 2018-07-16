@@ -4,6 +4,7 @@ import sys
 import os
 import warnings
 from datetime import datetime
+import time
 if 'RELDIR' in os.environ:
     sys.path.append('%s/lib/python' % os.environ['RELDIR'])
 else:
@@ -137,48 +138,25 @@ def plot_keyword(server,keyword):
 
 @app.route('/stream')
 def keyword_stream():
-    keyword = 'pressure'
-    server = 'kbvs'
-    pressure = ktl.cache('kt1s', 'tmp1')
-    mykeyword = exptime
+    keyword = 'temperature'
+    server = 'kt1s'
+    tmp1 = ktl.cache('kt1s', 'tmp1')
+    mykeyword = tmp1
 
     def convert_time(timestamp):
-        return datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+        return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
     initial_y = mykeyword.read(binary=True)
-    example = pd.DataFrame({'x': [convert_time(time.time())], 'y': [initial_y]}, columns=['x', 'y'])
 
-    dfstream = Buffer(example, length=100, index=False)
-
-    @gen.coroutine
-    def update(x, y):
-        global example
-        if y < 0.1:
-            example = pd.DataFrame({'x': x, 'y': 0}, columns=['x', 'y'])
-        else:
-            example = example.append({'x': x, 'y': y}, ignore_index=True)
-        dfstream.send(example)
-        print(example.head())
-
-
-    pressure = ktl.cache('kt1s', 'tmp1')
-    exptime = ktl.cache('kbds', 'elaptime')
-    ttime = ktl.cache('kbds', 'ttime')
-    mykeyword = exptime
-
-    def convert_time(timestamp):
-        return datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
-
-    initial_y = mykeyword.read(binary=True)
-    example = pd.DataFrame({'x': [convert_time(time.time())], 'y': [initial_y]}, columns=['x', 'y'])
-
-    dfstream = Buffer(example, length=100, index=False)
+    example = pd.DataFrame(
+        {'x': [convert_time(time.time())], 
+         'y': [initial_y]}, 
+        columns=['x', 'y'])
+    dfstream = Buffer(example, length=100, index=False)    
+    curve_dmap = hv.DynamicMap(hv.Points, streams=[dfstream]).options(color='red', line_width=5, width=1200, xrotation=90)
 
     doc = curdoc()
 
-    curve_dmap = hv.DynamicMap(hv.Points, streams=[dfstream]).options(color='red', line_width=5, width=1200,
-                                                                      xrotation=90)
-    example = pd.DataFrame({'x': x, 'y': 0}, columns=['x', 'y'])
     @gen.coroutine
     def update(x, y):
         global example
@@ -188,32 +166,33 @@ def keyword_stream():
 
     def callback(keyword):
         global example
-        y = mykeyword.binary
-        time_now = mykeyword.timestamp
+        print("call back called")
+        keyword.read()
+        y = keyword.binary
+        time_now = keyword.timestamp
         last_time_stamp = example.iloc[-1]['x']
         print(last_time_stamp)
         if last_time_stamp == convert_time(time_now):
+            print("time did not change, update not called")
             return
         doc.add_next_tick_callback(partial(update, x=convert_time(time_now), y=float(y)))
 
     def start_monitor():
+        global example
+        print("Monitor started")
         mykeyword.callback(callback)
         mykeyword.monitor()
         while True:
             pass
 
-    #doc = hv.renderer('bokeh').server_doc(curve_dmap)
     renderer = hv.renderer('bokeh')
-    hvplot = renderer.get_plot(myplot).state
+    hvplot = renderer.get_plot(curve_dmap).state
 
     thread = Thread(target=start_monitor)
     thread.start()
 
     html = file_html(hvplot, CDN, "Plot: %s from %s" % (keyword, server))
     return html
-
-
-
 
 @app.route('/')
 def index():

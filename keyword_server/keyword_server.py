@@ -77,8 +77,12 @@ def plot_keyword(server,keyword):
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     (output,err) = p.communicate()
     output = output.decode().splitlines()
-    print(output)
+    #print(output)
     p_status = p.wait()
+    mykeyword = ktl.cache(server, keyword)
+    mykeyword.monitor()
+    units = mykeyword['units']
+
     mydata = pd.DataFrame(columns=['time','value'])
     for line in output:
         #print(str(line))
@@ -108,7 +112,10 @@ def plot_keyword(server,keyword):
     # pyviz solution generating pure html
     #renderer = hv.plotting.mpl.MPL.Renderer.instance(dpi=120)
     renderer = hv.renderer('bokeh')
-    myplot = hv.Points(mydata, ('x', 'Time'), ('y',keyword)).options(width=800, height=500,xrotation=90, size=5)
+    myplot = hv.Points(mydata).options(width=800, height=500,xrotation=90, size=5)
+    myplot = myplot.redim.label(time='Time', value="%s (%s)" % (str(keyword).capitalize(), str(server).capitalize()))
+    myplot = myplot.relabel('Keyword plot: %s' % str(keyword).capitalize())
+    myplot = myplot.redim.unit(value=str(units))
     hvplot = renderer.get_plot(myplot).state
     html = file_html(hvplot, CDN, "Plot: %s from %s" % (keyword, server))
     return html

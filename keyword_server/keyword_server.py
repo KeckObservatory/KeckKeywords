@@ -5,7 +5,7 @@ import os
 import warnings
 from datetime import datetime
 if 'RELDIR' in os.environ:
-    sys.path.append('%s/lib/python' % os.environ('RELDIR'))
+    sys.path.append('%s/lib/python' % os.environ['RELDIR'])
 else:
     warnings.warn("The RELDIR variable is not defined. It might not be possible to import KTL")
 try:

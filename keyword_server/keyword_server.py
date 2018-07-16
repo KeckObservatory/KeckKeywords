@@ -1,4 +1,4 @@
-from flask import Flask, json, render_template, Response, jsonify, request
+from flask import Flask, json, jsonify, request
 import subprocess
 import sys
 import os
@@ -23,7 +23,7 @@ try:
     from bokeh.resources import CDN
 except ImportError as error:
     use_graphics = False
-    print("One of the graphics modules is not available. Graphics functions are disabled.")
+    warnings.warn("One of the graphics modules is not available. Graphics functions are disabled.")
     print(error)
 
 app = Flask(__name__)

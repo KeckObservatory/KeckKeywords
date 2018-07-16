@@ -3,31 +3,22 @@ import subprocess
 import sys
 sys.path.append('/kroot/rel/default/lib/python')
 import ktl
-import numpy as np
-from math import pi
 import pandas as pd
-#from io import StringIO
 import holoviews as hv
-#import holoviews.plotting.mpl
-from bokeh.embed import components, file_html
-#from bokeh.document import Document
-#from bokeh.plotting import figure
-#from bokeh.resources import CDN
-#from bokeh.models import ColumnDataSource, DatetimeTickFormatter
-import pprint
+from bokeh.embed import file_html
 from datetime import datetime
 
 hv.extension('bokeh')
-
-#import json_util
-
 app = Flask(__name__)
 
+
 def json_load(data):
-    return json.loads(data) #, object_hook=json_util.object_hook)
+    return json.loads(data)
+
 
 def json_dump(data):
     return json.dumps(data)
+
 
 def json_pretty(data):
     return json.dumps(data, sort_keys=True, indent=4)
@@ -39,21 +30,22 @@ def show_keyword(server,keyword):
     value = mykeyword.read()
     return json_dump(value)
 
+
 @app.route('/modify/<server>/<keyword>', methods=['POST','PUT'])
 def modify_keyword(server,keyword):
     mykeyword = ktl.cache(server,keyword)
     print("Is it json:" + str(request.is_json))
     content = request.get_json()
-    #print("Content:" + content)
     print("Request data: %s" % (str(content)))
     mykeyword.write(content['value'])
     new_value = mykeyword.read()
     return json_dump(new_value)
 
+
 @app.route('/showkeywords/<server>')
 def show_keywords(server):
     cmd = 'show keywords -s %s' % (server)
-    p = subprocess.Popen(cmd, stdout = subprocess.PIPE, shell=True)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     (output, err) = p.communicate()
     output = output.decode().splitlines()
     return jsonify(output)
@@ -62,7 +54,7 @@ def show_keywords(server):
 @app.route('/plot/<server>/<keyword>')
 def plot_keyword(server,keyword):
     cmd = "gshow -s %s %s -terse -date '1 day ago'" % (server,keyword)
-    p = subprocess.Popen(cmd, stdout = subprocess.PIPE, shell=True)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     (output,err) = p.communicate()
     output = output.decode().splitlines()
     print(output)
@@ -95,7 +87,7 @@ def plot_keyword(server,keyword):
 
     # pyviz solution generating pure html
     #renderer = hv.plotting.mpl.MPL.Renderer.instance(dpi=120)
-    renderer  = hv.renderer('bokeh')
+    renderer = hv.renderer('bokeh')
     myplot = hv.Points(mydata).options(width=800, height=500,xrotation=90, size=5)
     hvplot = renderer.get_plot(myplot).state
     html = file_html(hvplot, CDN, "Plot: %s from %s" % (keyword, server))

@@ -147,7 +147,7 @@ def keyword_stream():
         return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
     initial_y = mykeyword.read(binary=True)
-
+    global example
     example = pd.DataFrame(
         {'x': [convert_time(time.time())], 
          'y': [initial_y]}, 
@@ -159,23 +159,33 @@ def keyword_stream():
 
     @gen.coroutine
     def update(x, y):
+        print("Update called")
         global example
         example = example.append({'x': x, 'y': y}, ignore_index=True)
+        dfstream = Buffer(example, length=100, index=False)    
+        curve_dmap = hv.DynamicMap(hv.Points, streams=[dfstream]).options(color='red', line_width=5, width=1200, xrotation=90)
+        hvplot = renderer.get_plot(curve_dmap).state
+
+        html = file_html(hvplot, CDN, "Plot: %s from %s" % (keyword, server))
+        return html
+
         dfstream.send(example)
         print(example.head())
 
     def callback(keyword):
-        global example
         print("call back called")
-        keyword.read()
         y = keyword.binary
+        print("y:" + str(y))
         time_now = keyword.timestamp
+        print("timestamp:"+ str(time_now))
         last_time_stamp = example.iloc[-1]['x']
         print(last_time_stamp)
-        if last_time_stamp == convert_time(time_now):
-            print("time did not change, update not called")
-            return
-        doc.add_next_tick_callback(partial(update, x=convert_time(time_now), y=float(y)))
+        #if last_time_stamp == convert_time(time_now):
+        #    print("time did not change, update not called")
+        #    return
+        print("calling update")
+        update(convert_time(time_now), float(y))
+        #doc.add_next_tick_callback(partial(update,  x=convert_time(time_now), y=float(y)))
 
     def start_monitor():
         global example
@@ -183,7 +193,9 @@ def keyword_stream():
         mykeyword.callback(callback)
         mykeyword.monitor()
         while True:
-            pass
+            print(example)
+            print("Thread is running")
+            time.sleep(10)
 
     renderer = hv.renderer('bokeh')
     hvplot = renderer.get_plot(curve_dmap).state

@@ -3,6 +3,7 @@ import requests
 import configparser
 import os
 import sys
+import webbrowser
 
 def kshow(host, server, keyword):
     """Show the value of a keyword
@@ -78,6 +79,22 @@ def kshow_keywords(host, server):
     url = 'http://%s:5002/showkeywords/%s' % (host, server)
     response = requests.get(url)
     return response.json()
+
+def kplot(host, server, keyword):
+    """ Plot a day worth of value for the specified keyword
+
+    Parameters
+    ----------
+    host : str
+        Instrument host computer
+    server : str
+        Server
+    keyword
+        Keyword
+    """
+
+    url = 'http://%s:5002/plot/%s/%s' % (host, server, keyword)
+    webbrowser.open(url)
 
 def get_host(args):
 

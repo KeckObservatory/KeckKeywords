@@ -24,6 +24,11 @@ The list of keywords for a server can be obtained with::
 
     kshowkeywords -host kcwiserver kbgs
 
+A day worth of values can be plotted using::
+
+    kplot -host kcwiserver kbvs pressure
+
+
 Permanently specify the default host
 ====================================
 

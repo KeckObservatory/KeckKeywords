@@ -26,7 +26,11 @@ def kshow(host, server, keyword):
 
     """
     url = 'http://%s:5002/show/%s/%s' % (host, server, keyword)
-    response = requests.get(url)
+    try:
+        response = requests.get(url)
+    except requests.exceptions.RequestException as e:
+        print("Error: %s.\nCheck that the Flask keyword server is running." % str(e))
+        return
     return response.json()
 
 
@@ -54,7 +58,11 @@ def kmodify(host, server, keyword, value):
 
     """
     url = 'http://%s:5002/modify/%s/%s' % (host, server, keyword)
-    response = requests.post(url,json={"value": value})
+    try:
+        response = requests.post(url,json={"value": value})
+    except requests.exceptions.RequestException as e:
+        print("Error: %s.\nCheck that the Flask keyword server is running." % str(e))
+        return
     return response.ok, response.reason
 
 
@@ -77,7 +85,11 @@ def kshow_keywords(host, server):
 
     """
     url = 'http://%s:5002/showkeywords/%s' % (host, server)
-    response = requests.get(url)
+    try:
+        response = requests.get(url)
+    except requests.exceptions.RequestException as e:
+        print("Error: %s.\nCheck that the Flask keyword server is running." % str(e))
+        return
     return response.json()
 
 def kplot(host, server, keyword):

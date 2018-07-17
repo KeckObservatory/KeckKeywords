@@ -1,5 +1,6 @@
 from keck_keywords.kaccess import kmodify, get_host
 import argparse
+import sys
 
 # Parsing arguments
 description = "Modify value of a keyword"
@@ -12,7 +13,11 @@ parser.add_argument('value',  default=None, help='Value')
 if __name__ == '__main__':
     args = parser.parse_args()
     host = get_host(args)
-    ok, reason = kmodify(host, args.server, args.keyword, args.value)
+    try:
+        ok, reason = kmodify(host, args.server, args.keyword, args.value)
+    except TypeError as e:
+        print("Failed to contact the keywordserver")
+        sys.exit(1)
     if ok:
        print("Done")
     else:

@@ -12,6 +12,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     host = get_host(args)
     keywords = kshow_keywords(host, args.server)
-    for keyword in keywords:
-        pprint.pprint(keyword)
+    if keywords is not None:
+        for keyword in keywords:
+            pprint.pprint(keyword)
+
     

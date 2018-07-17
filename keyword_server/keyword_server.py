@@ -149,10 +149,10 @@ def keyword_stream():
     initial_y = mykeyword.read(binary=True)
     global example
     example = pd.DataFrame(
-        {'x': [convert_time(time.time())], 
-         'y': [initial_y]}, 
+        {'x': [convert_time(time.time())],
+         'y': [initial_y]},
         columns=['x', 'y'])
-    dfstream = Buffer(example, length=100, index=False)    
+    dfstream = Buffer(example, length=100, index=False)
     curve_dmap = hv.DynamicMap(hv.Points, streams=[dfstream]).options(color='red', line_width=5, width=1200, xrotation=90)
 
     doc = curdoc()
@@ -162,7 +162,7 @@ def keyword_stream():
         print("Update called")
         global example
         example = example.append({'x': x, 'y': y}, ignore_index=True)
-        dfstream = Buffer(example, length=100, index=False)    
+        dfstream = Buffer(example, length=100, index=False)
         curve_dmap = hv.DynamicMap(hv.Points, streams=[dfstream]).options(color='red', line_width=5, width=1200, xrotation=90)
         hvplot = renderer.get_plot(curve_dmap).state
 
@@ -177,7 +177,7 @@ def keyword_stream():
         y = keyword.binary
         print("y:" + str(y))
         time_now = keyword.timestamp
-        print("timestamp:"+ str(time_now))
+        print("timestamp:" + str(time_now))
         last_time_stamp = example.iloc[-1]['x']
         print(last_time_stamp)
         #if last_time_stamp == convert_time(time_now):

@@ -114,7 +114,7 @@ def plot_keyword(server,keyword):
         p.xaxis.axis_label = 'Time'
         p.yaxis.axis_label = '%s (%s) (%s)' % (str(keyword).capitalize(), str(server).capitalize(), str(units))
         p.xaxis.major_label_orientation = pi/4
-        p.xaxis.formatter=DatetimeTickFormatter(
+        p.xaxis.formatter = DatetimeTickFormatter(
             hours=["%d %B %Y"],
             days=["%d %B %Y"],
             months=["%d %B %Y"],

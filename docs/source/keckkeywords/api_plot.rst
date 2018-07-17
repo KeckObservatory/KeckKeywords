@@ -20,6 +20,10 @@ If the server is running, you can use a browser to directly access the keywords 
 
     http://hostname:5002/showkeywords/<server>
 
+- kplot:
+
+    http://hostname:5002/plot/<server>/<keyword>
+
 Plots
 =====
 

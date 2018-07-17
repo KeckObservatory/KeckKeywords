@@ -21,3 +21,11 @@ kshowkeywords
    :filename: ../../scripts/kshowkeywords
    :func: parser
    :prog: kshowkeywords
+
+
+kplot
+*************
+.. argparse::
+   :filename: ../../scripts/kplot
+   :func: parser
+   :prog: kplot

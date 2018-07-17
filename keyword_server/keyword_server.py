@@ -86,7 +86,7 @@ def plot_keyword(server,keyword):
     hv.extension('bokeh')
     cmd = "gshow -s %s %s -terse -date '1 day ago'" % (server,keyword)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
-    (output,err) = p.communicate()
+    (output, err) = p.communicate()
     output = output.decode().splitlines()
     #print(output)
     p_status = p.wait()

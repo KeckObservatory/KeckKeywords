@@ -5,6 +5,7 @@ import os
 import warnings
 from datetime import datetime
 import time
+from math import pi
 if 'RELDIR' in os.environ:
     sys.path.append('%s/lib/python' % os.environ['RELDIR'])
 else:
@@ -23,7 +24,8 @@ try:
     from holoviews.streams import Buffer
     from bokeh.embed import file_html
     from bokeh.resources import CDN
-    from bokeh.plotting import curdoc
+    from bokeh.plotting import curdoc, figure
+    from bokeh.models import ColumnDataSource, AjaxDataSource, DatetimeTickFormatter
     from tornado import gen
     from threading import Thread
     from functools import partial
@@ -77,6 +79,8 @@ def show_keywords(server):
 
 @app.route('/plot/<server>/<keyword>')
 def plot_keyword(server,keyword):
+    useBokeh = True
+    useHV = False
     if use_graphics is False:
         return json_dump("The graphics system is disabled")
     hv.extension('bokeh')
@@ -101,31 +105,35 @@ def plot_keyword(server,keyword):
              }, ignore_index=True)
 
     # pure bokeh solution
-    #source = ColumnDataSource(mydata)
-    #print(source)
-    #print(mydata.head())
-    #p = figure(x_axis_type='datetime')
-    #p.circle(x='time', y='value',source=source)
-    #p.xaxis.major_label_orientation = pi/4
-    #p.xaxis.formatter=DatetimeTickFormatter(
-    #    hours=["%d %B %Y"],
-    #    days=["%d %B %Y"],
-    #    months=["%d %B %Y"],
-    #    years=["%d %B %Y"],
-    #)
-    #html = file_html(p, CDN, "my plot")
-    #return html
+    if useBokeh:
+        source = ColumnDataSource(mydata)
+        #print(source)
+        print(mydata.head())
+        p = figure(x_axis_type='datetime', plot_width=800, plot_height=500, title='Keyword plot: %s' % str(keyword).capitalize())
+        p.circle(x='time', y='value',source=source)
+        p.xaxis.axis_label = 'Time'
+        p.yaxis.axis_label = '%s (%s) (%s)' % (str(keyword).capitalize(), str(server).capitalize(), str(units))
+        p.xaxis.major_label_orientation = pi/4
+        p.xaxis.formatter=DatetimeTickFormatter(
+            hours=["%d %B %Y"],
+            days=["%d %B %Y"],
+            months=["%d %B %Y"],
+            years=["%d %B %Y"],
+        )
+        html = file_html(p, CDN, "my plot")
+        return html
 
     # pyviz solution generating pure html
+    if useHV:
     #renderer = hv.plotting.mpl.MPL.Renderer.instance(dpi=120)
-    renderer = hv.renderer('bokeh')
-    myplot = hv.Points(mydata).options(width=800, height=500,xrotation=90, size=5)
-    myplot = myplot.redim.label(time='Time', value="%s (%s)" % (str(keyword).capitalize(), str(server).capitalize()))
-    myplot = myplot.relabel('Keyword plot: %s' % str(keyword).capitalize())
-    myplot = myplot.redim.unit(value=str(units))
-    hvplot = renderer.get_plot(myplot).state
-    html = file_html(hvplot, CDN, "Plot: %s from %s" % (keyword, server))
-    return html
+        renderer = hv.renderer('bokeh')
+        myplot = hv.Points(mydata).options(width=800, height=500,xrotation=90, size=5)
+        myplot = myplot.redim.label(time='Time', value="%s (%s)" % (str(keyword).capitalize(), str(server).capitalize()))
+        myplot = myplot.relabel('Keyword plot: %s' % str(keyword).capitalize())
+        myplot = myplot.redim.unit(value=str(units))
+        hvplot = renderer.get_plot(myplot).state
+        html = file_html(hvplot, CDN, "Plot: %s from %s" % (keyword, server))
+        return html
     #script = file_html(hvplot, CDN, 'myplot')
     #html = renderer._figure_data(hvplot)
     #html = renderer.get_plot(myplot).state
@@ -134,7 +142,7 @@ def plot_keyword(server,keyword):
 
     #return render_template("plot.html", keyword_name = keyword, the_div=div, the_script=script)
     #print(html)
-    return html
+    #return html
 
 @app.route('/stream')
 def keyword_stream():

@@ -273,9 +273,9 @@ def bk_worker():
 def index():
     return("Hello, welcome!")
 
+bokeh = Thread(name='bokeh_thread', target=bk_worker, daemon=True)
+bokeh.start()
+bokeh.join()
 
 if __name__ == "__main__":
-    bokeh = Thread(name='bokeh_thread', target=bk_worker, daemon=True)
-    bokeh.start()
-    bokeh.join()
     app.run(host='0.0.0.0',port=5002, debug=False)

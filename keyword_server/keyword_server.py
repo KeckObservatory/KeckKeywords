@@ -88,7 +88,7 @@ def show_keywords(server):
     return jsonify(output)
 
 
-def generate_history(server, keyword, date_range)
+def generate_history(server, keyword, date_range):
     cmd = "gshow -s %s %s -terse -date '%s'" % (server,keyword, date_range)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     (output, err) = p.communicate()
@@ -97,7 +97,6 @@ def generate_history(server, keyword, date_range)
     p_status = p.wait()
     mykeyword = ktl.cache(server, keyword)
     mykeyword.monitor()
-    units = mykeyword['units']
 
     mydata = pd.DataFrame(columns=['time','value'])
     for line in output:
@@ -119,6 +118,9 @@ def plot_keyword(server,keyword):
         return json_dump("The graphics system is disabled")
     hv.extension('bokeh')
     mydata = generate_history(server, keyword, '1 day ago')
+    mykeyword = ktl.cache(server,keyword)
+    units = mykeyword['units']
+
     # pure bokeh solution
     if useBokeh:
         source = ColumnDataSource(mydata)
@@ -177,11 +179,11 @@ def keyword_stream(doc):
     mykeyword = ktl.cache(stream_server, stream_keyword)
 
     def convert_time(timestamp):
-        return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+        return datetime.fromtimestamp(timestamp) # .strptime('%Y-%m-%d %H:%M:%S.%f')
 
     initial_y = mykeyword.read(binary=True)
     global example
-    mydata = generate_history(server, keyword, '1 hour ago')
+    mydata = generate_history(stream_server, stream_keyword, '10 minutes ago')
     #example = pd.DataFrame(
     #    {'x': [convert_time(time.time())],
     #     'y': [initial_y]},
@@ -201,7 +203,7 @@ def keyword_stream(doc):
         #return html
 
         dfstream.send(example)
-        print(example.head())
+        #print(example.head())
 
     def callback(keyword):
         print("call back called")
@@ -210,10 +212,10 @@ def keyword_stream(doc):
         time_now = keyword.timestamp
         print("timestamp:" + str(time_now))
         last_time_stamp = example.iloc[-1]['time']
-        print(last_time_stamp)
-        if last_time_stamp == convert_time(time_now):
-            print("time did not change, update not called")
-            return
+        print(last_time_stamp, convert_time(time_now))
+        #if str(last_time_stamp) == convert_time(time_now):
+        #    print("time did not change, update not called")
+        #    return
         print("calling update")
         #update(convert_time(time_now), float(y))
         doc.add_next_tick_callback(partial(update,  x=convert_time(time_now), y=float(y)))

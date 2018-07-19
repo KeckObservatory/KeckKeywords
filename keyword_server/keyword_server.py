@@ -88,14 +88,8 @@ def show_keywords(server):
     return jsonify(output)
 
 
-@app.route('/plot/<server>/<keyword>')
-def plot_keyword(server,keyword):
-    useBokeh = True
-    useHV = False
-    if use_graphics is False:
-        return json_dump("The graphics system is disabled")
-    hv.extension('bokeh')
-    cmd = "gshow -s %s %s -terse -date '1 day ago'" % (server,keyword)
+def generate_history(server, keyword, date_range)
+    cmd = "gshow -s %s %s -terse -date '%s'" % (server,keyword, date_range)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     (output, err) = p.communicate()
     output = output.decode().splitlines()
@@ -114,7 +108,17 @@ def plot_keyword(server,keyword):
             'time': datetime.strptime(line.split()[0], "%Y-%m-%dT%H:%M:%S.%f"),
             'value': float(line.split()[1])
              }, ignore_index=True)
+    return mydata
 
+
+@app.route('/plot/<server>/<keyword>')
+def plot_keyword(server,keyword):
+    useBokeh = True
+    useHV = False
+    if use_graphics is False:
+        return json_dump("The graphics system is disabled")
+    hv.extension('bokeh')
+    mydata = generate_history(server, keyword, '1 day ago')
     # pure bokeh solution
     if useBokeh:
         source = ColumnDataSource(mydata)
@@ -159,27 +163,6 @@ def plot_keyword(server,keyword):
 
 ######## STREAM TESTING
 
-def modify_doc(doc):
-    df = sea_surface_temperature.copy()
-    source = ColumnDataSource(data=df)
-
-    plot = figure(x_axis_type='datetime', y_range=(0, 25), y_axis_label='Temperature (Celsius)',
-                  title="Sea Surface Temperature at 43.18, -70.43")
-    plot.line('time', 'temperature', source=source)
-
-    def callback(attr, old, new):
-        if new == 0:
-            data = df
-        else:
-            data = df.rolling('{0}D'.format(new)).mean()
-        source.data = ColumnDataSource(data=data).data
-
-    slider = Slider(start=0, end=30, value=0, step=1, title="Smoothing by N Days")
-    slider.on_change('value', callback)
-
-    doc.add_root(column(slider, plot))
-
-    doc.theme = Theme(filename="theme.yaml")
 
 @app.route('/stop')
 def stop_stream():
@@ -189,11 +172,8 @@ def stop_stream():
     stop_signal=True
     return json_dump("stop")
 
-#@app.route('/stream')
+
 def keyword_stream(doc):
-    #keyword = 'temperature'
-    #server = 'kt1s'
-    #tmp1 = ktl.cache('kt1s', 'tmp1')
     mykeyword = ktl.cache(stream_server, stream_keyword)
 
     def convert_time(timestamp):
@@ -201,10 +181,12 @@ def keyword_stream(doc):
 
     initial_y = mykeyword.read(binary=True)
     global example
-    example = pd.DataFrame(
-        {'x': [convert_time(time.time())],
-         'y': [initial_y]},
-        columns=['x', 'y'])
+    mydata = generate_history(server, keyword, '1 hour ago')
+    #example = pd.DataFrame(
+    #    {'x': [convert_time(time.time())],
+    #     'y': [initial_y]},
+    #    columns=['x', 'y'])
+    example = mydata
     dfstream = Buffer(example, length=100, index=False)
     curve_dmap = hv.DynamicMap(hv.Points, streams=[dfstream]).options(color='red', line_width=5, width=800, height=500, xrotation=90)
 
@@ -214,7 +196,7 @@ def keyword_stream(doc):
     def update(x, y):
         print("Update called")
         global example
-        example = example.append({'x': x, 'y': y}, ignore_index=True)
+        example = example.append({'time': x, 'value': y}, ignore_index=True)
         #html = file_html(hvplot, CDN, "Plot: %s from %s" % (keyword, server))
         #return html
 
@@ -227,7 +209,7 @@ def keyword_stream(doc):
         print("y:" + str(y))
         time_now = keyword.timestamp
         print("timestamp:" + str(time_now))
-        last_time_stamp = example.iloc[-1]['x']
+        last_time_stamp = example.iloc[-1]['time']
         print(last_time_stamp)
         if last_time_stamp == convert_time(time_now):
             print("time did not change, update not called")

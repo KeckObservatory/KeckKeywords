@@ -240,9 +240,9 @@ def keyword_stream(doc):
     doc.add_root(hvplot)
     # doc = renderer.server_doc(curve_dmap)
     # start_monitor()
-    thread = Thread(name='Keyword_monitor', target=start_monitor, daemon=True)
+    thread = Thread(name='Keyword_monitor', target=start_monitor)
     thread.start()
-    thread.join()
+    #thread.join()
 
     # html = file_html(hvplot, CDN, "Plot: %s from %s" % (keyword, server))
     # return html
@@ -254,11 +254,12 @@ def bkapp_page(server, keyword):
     global stream_keyword
     stream_server = server
     stream_keyword = keyword
-    # remote_address = request.remote_addr
+    remote_address = request.remote_addr
     remote_url = request.host_url
     host_name = remote_url.split('//')[1].split(':')[0]
-    print("Starting a bokeh server on server %s" % host_name)
+    print("Starting a bokeh server on server %s/%s" % (host_name, remote_address))
     script = server_document('http://%s:5006/bkapp' % (host_name))
+    print(script)
     print("Rendering template")
     return render_template("embed.html", script=script, template="Flask")
 
@@ -273,9 +274,10 @@ def bk_worker():
 def index():
     return("Hello, welcome!")
 
-bokeh = Thread(name='bokeh_thread', target=bk_worker, daemon=True)
-bokeh.start()
-bokeh.join()
 
 if __name__ == "__main__":
+    bokeh = Thread(name='bokeh_thread', target=bk_worker, daemon=True)
+    bokeh.start()
+    #bokeh.join()
+
     app.run(host='0.0.0.0',port=5002, debug=False)

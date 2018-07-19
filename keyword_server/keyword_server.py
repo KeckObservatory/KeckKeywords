@@ -195,7 +195,7 @@ def keyword_stream(doc):
          'y': [initial_y]},
         columns=['x', 'y'])
     dfstream = Buffer(example, length=100, index=False)
-    curve_dmap = hv.DynamicMap(hv.Points, streams=[dfstream]).options(color='red', line_width=5, width=1200, xrotation=90)
+    curve_dmap = hv.DynamicMap(hv.Points, streams=[dfstream]).options(color='red', line_width=5, width=800, height=500, xrotation=90)
 
     #doc = curdoc()
 

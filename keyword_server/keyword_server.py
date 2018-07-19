@@ -6,6 +6,8 @@ import warnings
 from datetime import datetime
 import time
 from math import pi
+from threading import Thread
+
 if 'RELDIR' in os.environ:
     sys.path.append('%s/lib/python' % os.environ['RELDIR'])
 else:
@@ -42,7 +44,7 @@ except ImportError as error:
     print(error)
 
 global stop_signal
-stop_signal=False
+stop_signal = False
 global stream_server
 global stream_keyword
 
@@ -62,14 +64,14 @@ def json_pretty(data):
 
 
 @app.route('/show/<server>/<keyword>')
-def show_keyword(server,keyword):
-    mykeyword = ktl.cache(server,keyword)
+def show_keyword(server, keyword):
+    mykeyword = ktl.cache(server, keyword)
     value = mykeyword.read()
     return json_dump(value)
 
 
 @app.route('/modify/<server>/<keyword>', methods=['POST','PUT'])
-def modify_keyword(server,keyword):
+def modify_keyword(server, keyword):
     mykeyword = ktl.cache(server,keyword)
     print("Is it json:" + str(request.is_json))
     content = request.get_json()
@@ -89,7 +91,7 @@ def show_keywords(server):
 
 
 def generate_history(server, keyword, date_range):
-    cmd = "gshow -s %s %s -terse -date '%s'" % (server,keyword, date_range)
+    cmd = "gshow -s %s %s -terse -date '%s'" % (server, keyword, date_range)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     (output, err) = p.communicate()
     output = output.decode().splitlines()
@@ -111,7 +113,7 @@ def generate_history(server, keyword, date_range):
 
 
 @app.route('/plot/<server>/<keyword>')
-def plot_keyword(server,keyword):
+def plot_keyword(server, keyword):
     useBokeh = True
     useHV = False
     if use_graphics is False:
@@ -161,8 +163,6 @@ def plot_keyword(server,keyword):
     #print(html)
     #return html
 
-
-
 ######## STREAM TESTING
 
 
@@ -171,7 +171,7 @@ def stop_stream():
     global stop_signal
     for t in enumerate():
         print(t.getName())
-    stop_signal=True
+    stop_signal = True
     return json_dump("stop")
 
 
@@ -179,9 +179,8 @@ def keyword_stream(doc):
     mykeyword = ktl.cache(stream_server, stream_keyword)
 
     def convert_time(timestamp):
-        return datetime.fromtimestamp(timestamp) # .strptime('%Y-%m-%d %H:%M:%S.%f')
+        return datetime.fromtimestamp(timestamp)  # .strptime('%Y-%m-%d %H:%M:%S.%f')
 
-    initial_y = mykeyword.read(binary=True)
     global example
     mydata = generate_history(stream_server, stream_keyword, '10 minutes ago')
     #example = pd.DataFrame(
@@ -192,18 +191,18 @@ def keyword_stream(doc):
     dfstream = Buffer(example, length=100, index=False)
     curve_dmap = hv.DynamicMap(hv.Points, streams=[dfstream]).options(color='red', line_width=5, width=800, height=500, xrotation=90)
 
-    #doc = curdoc()
+    # doc = curdoc()
 
     @gen.coroutine
     def update(x, y):
         print("Update called")
         global example
         example = example.append({'time': x, 'value': y}, ignore_index=True)
-        #html = file_html(hvplot, CDN, "Plot: %s from %s" % (keyword, server))
-        #return html
+        # html = file_html(hvplot, CDN, "Plot: %s from %s" % (keyword, server))
+        # return html
 
         dfstream.send(example)
-        #print(example.head())
+        # print(example.head())
 
     def callback(keyword):
         print("call back called")
@@ -213,12 +212,12 @@ def keyword_stream(doc):
         print("timestamp:" + str(time_now))
         last_time_stamp = example.iloc[-1]['time']
         print(last_time_stamp, convert_time(time_now))
-        #if str(last_time_stamp) == convert_time(time_now):
+        # if str(last_time_stamp) == convert_time(time_now):
         #    print("time did not change, update not called")
         #    return
         print("calling update")
-        #update(convert_time(time_now), float(y))
-        doc.add_next_tick_callback(partial(update,  x=convert_time(time_now), y=float(y)))
+        # update(convert_time(time_now), float(y))
+        doc.add_next_tick_callback(partial(update, x=convert_time(time_now), y=float(y)))
 
     def start_monitor():
         global example
@@ -232,31 +231,30 @@ def keyword_stream(doc):
             if stop_signal:
                 print("stopping monitoring")
                 mykeyword.monitor(start=False)
-                stop_signal=False
+                stop_signal = False
                 break
             time.sleep(10)
 
     renderer = hv.renderer('bokeh')
     hvplot = renderer.get_plot(curve_dmap).state
     doc.add_root(hvplot)
-    #doc = renderer.server_doc(curve_dmap)
-    #start_monitor()
-    thread = Thread(name='Keyword_monitor', target=start_monitor)
+    # doc = renderer.server_doc(curve_dmap)
+    # start_monitor()
+    thread = Thread(name='Keyword_monitor', target=start_monitor, daemon=True)
     thread.start()
+    thread.join()
 
-    #html = file_html(hvplot, CDN, "Plot: %s from %s" % (keyword, server))
-    #return html
+    # html = file_html(hvplot, CDN, "Plot: %s from %s" % (keyword, server))
+    # return html
 
 
-
-    
 @app.route('/teststream/<server>/<keyword>', methods=['GET'])
 def bkapp_page(server, keyword):
     global stream_server
     global stream_keyword
     stream_server = server
     stream_keyword = keyword
-    remote_address = request.remote_addr
+    # remote_address = request.remote_addr
     remote_url = request.host_url
     host_name = remote_url.split('//')[1].split(':')[0]
     print("Starting a bokeh server on server %s" % host_name)
@@ -275,9 +273,9 @@ def bk_worker():
 def index():
     return("Hello, welcome!")
 
-    
-from threading import Thread
-Thread(name='bokeh_thread', target=bk_worker).start()
 
 if __name__ == "__main__":
+    bokeh = Thread(name='bokeh_thread', target=bk_worker, daemon=True)
+    bokeh.start()
+    bokeh.join()
     app.run(host='0.0.0.0',port=5002, debug=False)

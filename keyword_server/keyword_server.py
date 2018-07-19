@@ -204,12 +204,8 @@ def keyword_stream(doc):
         print("Update called")
         global example
         example = example.append({'x': x, 'y': y}, ignore_index=True)
-        dfstream = Buffer(example, length=100, index=False)
-        curve_dmap = hv.DynamicMap(hv.Points, streams=[dfstream]).options(color='red', line_width=5, width=1200, xrotation=90)
-        hvplot = renderer.get_plot(curve_dmap).state
-
-        html = file_html(hvplot, CDN, "Plot: %s from %s" % (keyword, server))
-        return html
+        #html = file_html(hvplot, CDN, "Plot: %s from %s" % (keyword, server))
+        #return html
 
         dfstream.send(example)
         print(example.head())
@@ -222,11 +218,11 @@ def keyword_stream(doc):
         print("timestamp:" + str(time_now))
         last_time_stamp = example.iloc[-1]['x']
         print(last_time_stamp)
-        #if last_time_stamp == convert_time(time_now):
-        #    print("time did not change, update not called")
-        #    return
+        if last_time_stamp == convert_time(time_now):
+            print("time did not change, update not called")
+            return
         print("calling update")
-        update(convert_time(time_now), float(y))
+        #update(convert_time(time_now), float(y))
         doc.add_next_tick_callback(partial(update,  x=convert_time(time_now), y=float(y)))
 
     def start_monitor():
@@ -242,9 +238,10 @@ def keyword_stream(doc):
     renderer = hv.renderer('bokeh')
     hvplot = renderer.get_plot(curve_dmap).state
     doc.add_root(hvplot)
-    start_monitor()
-    #thread = Thread(target=start_monitor)
-    #thread.start()
+    #doc = renderer.server_doc(curve_dmap)
+    #start_monitor()
+    thread = Thread(target=start_monitor)
+    thread.start()
 
     #html = file_html(hvplot, CDN, "Plot: %s from %s" % (keyword, server))
     #return html
@@ -254,13 +251,14 @@ def keyword_stream(doc):
     
 @app.route('/teststream', methods=['GET'])
 def bkapp_page():
+    print("Connecting to bokeh server for display")
     script = server_document('http://localhost:5006/bkapp')
     return render_template("embed.html", script=script, template="Flask")
 
 def bk_worker():
     # Can't pass num_procs > 1 in this configuration. If you need to run multiple
     # processes, see e.g. flask_gunicorn_embed.py
-    server = Server({'/bkapp': keyword_stream}, io_loop=IOLoop(), allow_websocket_origin=["localhost:8000"])
+    server = Server({'/bkapp': keyword_stream}, io_loop=IOLoop(), allow_websocket_origin=["*"])
     server.start()
     server.io_loop.start()
 
@@ -273,4 +271,4 @@ from threading import Thread
 Thread(target=bk_worker).start()
 
 if __name__ == "__main__":
-    app.run(port=8000, debug=False)
+    app.run(host='0.0.0.0',port=5002, debug=False)

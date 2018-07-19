@@ -272,14 +272,18 @@ def bkapp_page(server, keyword):
     global stream_keyword
     stream_server = server
     stream_keyword = keyword
-    print("Connecting to bokeh server for display")
-    script = server_document('http://localhost:5006/bkapp')
+    remote_address = request.remote_addr
+    remote_url = request.host_url
+    host_name = remote_url.split('//')[1].split(':')[0]
+    print("Starting a bokeh server on server %s" % host_name)
+    script = server_document('http://%s:5006/bkapp' % (host_name))
+    print("Rendering template")
     return render_template("embed.html", script=script, template="Flask")
 
 def bk_worker():
     # Can't pass num_procs > 1 in this configuration. If you need to run multiple
     # processes, see e.g. flask_gunicorn_embed.py
-    server = Server({'/bkapp': keyword_stream}, io_loop=IOLoop(), allow_websocket_origin=["*"])
+    server = Server({'/bkapp': keyword_stream}, io_loop=IOLoop(), allow_websocket_origin=['localhost:5002','kcwiserver:5002'])
     server.start()
     server.io_loop.start()
 

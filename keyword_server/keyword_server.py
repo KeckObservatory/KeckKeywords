@@ -32,15 +32,17 @@ try:
 
     from tornado import gen
     from tornado.ioloop import IOLoop
-    from threading import Thread
+    from threading import Thread, enumerate
     from functools import partial
     from bokeh.sampledata.sea_surface_temperature import sea_surface_temperature
-
 
 except ImportError as error:
     use_graphics = False
     warnings.warn("One of the graphics modules is not available. Graphics functions are disabled.")
     print(error)
+
+global stop_signal
+stop_signal=False
 
 app = Flask(__name__)
 
@@ -177,6 +179,13 @@ def modify_doc(doc):
 
     doc.theme = Theme(filename="theme.yaml")
 
+@app.route('/stop')
+def stop_stream():
+    global stop_signal
+    for t in enumerate():
+        print(t.getName())
+    stop_signal=True
+    return json_dump("stop")
 
 #@app.route('/stream')
 def keyword_stream(doc):
@@ -227,12 +236,18 @@ def keyword_stream(doc):
 
     def start_monitor():
         global example
+        global stop_signal
         print("Monitor started")
         mykeyword.callback(callback)
         mykeyword.monitor()
         while True:
             print(example)
             print("Thread is running")
+            if stop_signal:
+                print("stopping monitoring")
+                mykeyword.monitor(start=False)
+                stop_signal=False
+                break
             time.sleep(10)
 
     renderer = hv.renderer('bokeh')
@@ -240,7 +255,7 @@ def keyword_stream(doc):
     doc.add_root(hvplot)
     #doc = renderer.server_doc(curve_dmap)
     #start_monitor()
-    thread = Thread(target=start_monitor)
+    thread = Thread(name='Keyword_monitor', target=start_monitor)
     thread.start()
 
     #html = file_html(hvplot, CDN, "Plot: %s from %s" % (keyword, server))
@@ -268,7 +283,7 @@ def index():
 
     
 from threading import Thread
-Thread(target=bk_worker).start()
+Thread(name='bokeh_thread', target=bk_worker).start()
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0',port=5002, debug=False)

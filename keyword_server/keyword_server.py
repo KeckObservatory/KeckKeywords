@@ -43,6 +43,8 @@ except ImportError as error:
 
 global stop_signal
 stop_signal=False
+global stream_server
+global stream_keyword
 
 app = Flask(__name__)
 
@@ -189,10 +191,10 @@ def stop_stream():
 
 #@app.route('/stream')
 def keyword_stream(doc):
-    keyword = 'temperature'
-    server = 'kt1s'
-    tmp1 = ktl.cache('kt1s', 'tmp1')
-    mykeyword = tmp1
+    #keyword = 'temperature'
+    #server = 'kt1s'
+    #tmp1 = ktl.cache('kt1s', 'tmp1')
+    mykeyword = ktl.cache(stream_server, stream_keyword)
 
     def convert_time(timestamp):
         return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
@@ -264,8 +266,12 @@ def keyword_stream(doc):
 
 
     
-@app.route('/teststream', methods=['GET'])
-def bkapp_page():
+@app.route('/teststream/<server>/<keyword>', methods=['GET'])
+def bkapp_page(server, keyword):
+    global stream_server
+    global stream_keyword
+    stream_server = server
+    stream_keyword = keyword
     print("Connecting to bokeh server for display")
     script = server_document('http://localhost:5006/bkapp')
     return render_template("embed.html", script=script, template="Flask")

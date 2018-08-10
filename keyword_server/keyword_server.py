@@ -182,7 +182,7 @@ def keyword_stream(doc):
         return datetime.fromtimestamp(timestamp)  # .strptime('%Y-%m-%d %H:%M:%S.%f')
 
     global example
-    mydata = generate_history(stream_server, stream_keyword, '10 minutes ago')
+    mydata = generate_history(stream_server, stream_keyword, '30 minutes ago')
     #example = pd.DataFrame(
     #    {'x': [convert_time(time.time())],
     #     'y': [initial_y]},

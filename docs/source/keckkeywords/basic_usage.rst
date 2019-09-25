@@ -28,6 +28,10 @@ A day worth of values can be plotted using::
 
     kplot -host kcwiserver kbvs pressure
 
+If both ports 5002 and 5006 are accessible or forwarded, a live stream can be generated with::
+
+    kstream -host kcwiserver kt1s tmp1
+
 
 Permanently specify the default host
 ====================================

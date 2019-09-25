@@ -24,8 +24,17 @@ kshowkeywords
 
 
 kplot
-*************
+*****
 .. argparse::
    :filename: ../../scripts/kplot
    :func: parser
    :prog: kplot
+
+
+kstream
+*******
+.. argparse::
+   :filename: ../../scripts/kstream
+   :func: parser
+   :prog: kplot
+

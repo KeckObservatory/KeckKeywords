@@ -53,7 +53,7 @@ If the server is running on hostname, it is accessible at: http://hostname:5002.
 If hostname is not accessible from your location, it is possible to establish a tunnel and then
 access the localhost connection::
 
-    ssh user@hostname -L 5002:localhost:5002
+    ssh user@hostname -L 5002:localhost:5002  (add: -L 5006:localhost:5006 if live stream is desired)
 
 Localhost becomes the new server, so it's possible to do::
 

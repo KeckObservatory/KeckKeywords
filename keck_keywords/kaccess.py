@@ -108,6 +108,37 @@ def kplot(host, server, keyword):
     url = 'http://%s:5002/plot/%s/%s' % (host, server, keyword)
     webbrowser.open(url)
 
+def kstream(host, server, keyword):
+    """Streams values and plots a keyword (EXPERIMENTAL, only works on localhost)
+
+    Parameters
+    ----------
+    host : str
+        Instrument host
+    server : str
+        Server
+    keyword : str
+        Keyword
+    """
+    url = 'http://%s:5002/teststream/%s/%s' % (host, server, keyword)
+    webbrowser.open(url)
+
+def kstop(host):
+    """Stop the monitoring of the currently streamed keyword
+
+    Parameters
+    ----------
+    host : str
+        Instrument host
+    """
+    url = 'http://%s:5002/stop' % (host)
+    try:
+        response = requests.get(url)
+    except requests.exceptions.RequestException as e:
+        print("Error: %s.\nCheck that the Flask keyword server is running." % str(e))
+        return
+    return response.json()
+
 def get_host(args):
 
     if args.host:

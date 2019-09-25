@@ -33,3 +33,13 @@ It is possible to plot the history of the last day for a keyword with:
 
 Note that the plot is dynamic: you can pan and zoom.
 
+If both ports 5002 and 5006 are forwarded to localhost or are open, it is possible to plot a live stream for a keyword::
+
+    http://hostmame:5002/teststream/<server>/<keyword>
+
+Note that the stream should be stopped by accessing::
+
+    http://hostname:5002/stop
+
+This interrupts the remote monitoring of the keyword
+

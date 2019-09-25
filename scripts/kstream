@@ -1,0 +1,25 @@
+from keck_keywords.kaccess import kstream, get_host, kstop
+import argparse
+import signal
+import time
+import sys
+
+# Parsing arguments
+description = "Streams a plot for a keyword"
+parser = argparse.ArgumentParser(description=description)
+parser.add_argument('-host',  default=None, help='Host')
+parser.add_argument('server',  default=None, help='Server')
+parser.add_argument('keyword',  default=None, help='Keyword')
+
+if __name__ == '__main__':
+    args = parser.parse_args()
+    host = get_host(args)
+    def handler(signum, frame):
+        kstop(host)
+        sys.exit()
+    signal.signal(signal.SIGINT, handler)
+    signal.signal(signal.SIGILL, handler)
+    signal.signal(signal.SIGTERM, handler)
+    kstream(host, args.server, args.keyword)
+    while True:
+        time.sleep(1)
